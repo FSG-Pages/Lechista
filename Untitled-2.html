@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra Wojenno-Strategiczna</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .map {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .province {
+            width: 18%;
+            height: 100px;
+            margin: 1%;
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .province.blue {
+            background-color: #87CEEB;
+        }
+        .province.red {
+            background-color: #FF6347;
+        }
+        .province .resources {
+            position: absolute;
+            bottom: 5px;
+            font-size: 12px;
+        }
+        .resources span {
+            display: block;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .controls div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gra Wojenno-Strategiczna</h1>
+        <div class="map" id="map">
+            <!-- Prowincje zostaną dodane dynamicznie przez JavaScript -->
+        </div>
+        <div class="controls">
+            <div>
+                <button id="startGame">Rozpocznij grę</button>
+            </div>
+            <div>
+                <button id="nextTurn">Następna tura</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const provinces = [
+            { id: 1, owner: 'blue', resources: {} },
+            { id: 2, owner: 'blue', resources: {} },
+            { id: 3, owner: 'blue', resources: {} },
+            { id: 4, owner: 'blue', resources: {} },
+            { id: 5, owner: 'blue', resources: {} },
+            { id: 6, owner: 'red', resources: {} },
+            { id: 7, owner: 'red', resources: {} },
+            { id: 8, owner: 'red', resources: {} },
+            { id: 9, owner: 'red', resources: {} },
+            { id: 10, owner: 'red', resources: {} }
+        ];
+
+        const resources = ['stal', 'żelazo', 'futro', 'miedź', 'złoto', 'ludzie'];
+
+        function getRandomResourceValue(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateResources() {
+            provinces.forEach(province => {
+                resources.forEach(resource => {
+                    province.resources[resource] = getRandomResourceValue(100, 500);
+                    if (resource === 'złoto') {
+                        province.resources[resource] = getRandomResourceValue(10, 100);
+                    }
+                });
+            });
+        }
+
+        function renderMap() {
+            const mapElement = document.getElementById('map');
+            mapElement.innerHTML = '';
+            provinces.forEach(province => {
+                const provinceElement = document.createElement('div');
+                provinceElement.classList.add('province', province.owner);
+                provinceElement.id = `province-${province.id}`;
+                provinceElement.innerHTML = `<div class="resources">
+                    ${resources.map(resource => `<span>${resource}: ${province.resources[resource]}</span>`).join('')}
+                </div>`;
+                mapElement.appendChild(provinceElement);
+            });
+        }
+
+        document.getElementById('startGame').addEventListener('click', () => {
+            generateResources();
+            renderMap();
+        });
+
+        document.getElementById('nextTurn').addEventListener('click', () => {
+            alert('Następna tura');
+        });
+
+        // Inicjalizacja mapy
+        renderMap();
+    </script>
+</body>
+</html>

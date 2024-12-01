@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki Meczów Piłkarskich</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #f0f0f0;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        .winner {
+            background-color: lightblue;
+        }
+        .second {
+            background-color: orange;
+        }
+        .third, .fourth {
+            background-color: lightgreen;
+        }
+        .second-last, .last {
+            background-color: darkred;
+            color: white;
+        }
+        .next-three {
+            background-color: red;
+            color: white;
+        }
+        .next-four {
+            background-color: lightcoral;
+        }
+        .playoffs {
+            background-color: violet;
+        }
+        #countdown {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            z-index: 1000;
+            display: none;
+        }
+        #match-results, #playoff-results {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Wyniki Meczów Piłkarskich</h1>
+<div>
+    <button onclick="startGeneration()">Generuj</button>
+    <button onclick="clearResults()">Usuń wyniki</button>
+    <button onclick="addTeam()">Dodaj zespół</button>
+    <button onclick="resetTeams()">Reset zespołów</button>
+    <button onclick="showMatchResults()">Pokaż wyniki meczów</button>
+    <button onclick="showPlayoffs()">Pokaż baraże</button>
+    <button onclick="nextSeason()">Następny sezon</button>
+    <button>1 liga</button>
+    <button>2 liga</button>
+    <button>3 liga</button>
+    <button>4 liga</button>
+    <button>A klasa</button>
+    <button>B klasa</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Lp.</th>
+            <th>Drużyna</th>
+            <th>Punkty</th>
+            <th>W</th>
+            <th>R</th>
+            <th>P</th>
+            <th>M</th>
+            <th>+-</th>
+            <th>ID</th>
+        </tr>
+    </thead>
+    <tbody id="results">
+    </tbody>
+</table>
+
+<div id="match-results"></div>
+<div id="playoff-results"></div>
+
+<div id="countdown"></div>
+
+<script>
+    let teams = [
+        { name: "POGOŃ", id: 3.5 },
+        { name: "LECHIA", id: 3.5 },
+        { name: "WIDZEW", id: 3 },
+        { name: "WISŁA", id: 4 },
+        { name: "ŚLĄSK", id: 3.5 },
+        { name: "LECH", id: 5 },
+        { name: "ŁKS", id: 3.5 },
+        { name: "ODRA OPOLE", id: 1.5 },
+        { name: "LEGIA", id: 5 },
+        { name: "GÓRNIK", id: 3.5 },
+        { name: "SOSNOWIEC", id: 2 },
+        { name: "RAKÓW", id: 2 },
+        { name: "JAGA", id: 2 },
+        { name: "CRACOVIA", id: 2 },
+        { name: "GKS TYCHY", id: 1.5 },
+        { name: "PIAST", id: 2 },
+        { name: "ŁĘCZNA", id: 1 },
+        { name: "ARKA", id: 1 }
+    ];
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function startGeneration() {
+        document.getElementById('countdown').style.display = 'flex';
+        countdown().then(generateResults);
+    }
+
+    async function countdown() {
+        const countdownElement = document.getElementById('countdown');
+        for (let i = 3; i > 0; i--) {
+            countdownElement.textContent = `${i}...`;
+            await sleep(333);
+        }
+        countdownElement.style.display = 'none';
+    }
+
+    function generateResults() {
+        const results = {};
+        const matches = [];
+        const matchResultsElement = document.getElementById('match-results');
+        matchResultsElement.innerHTML = '';
+
+        // Inicjalizacja obiektu wyników
+        teams.forEach(team => {
+            results[team.name] = {
+                points: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                matches: 0,
+                goalsFor: 0,
+                goalsAgainst: 0
+            };
+            team.attack = Math.random() * 10; // Losowy atak
+            team.defense = Math.random() * 10; // Losowa obrona
+        });
+
+        // Harmonogram i symulacja meczów
+        for (let i = 0; i < teams.length; i++) {
+            for (let j = i + 1; j < teams.length; j++) {
+                const team1 = teams[i];
+                const team2 = teams[j];
+
+                let score1 = 0;
+                let score2 = 0;
+
+                if (team1.id > team2.id) score1 += 1;
+                if (team2.id > team1.id) score2 += 1;
+                if (team1.defense > team2.defense) score1 += 1;
+                if (team2.defense > team1.defense) score2 += 1;
+                if (team1.attack > team2.attack) score1 += 1;
+                if (team2.attack > team1.attack) score2 += 1;
+                score1 += Math.random() < 0.5 ? 2 : 0;
+                score2 += Math.random() < 0.5 ? 2 : 0;
+
+                const goalOptions = [0, 1, 1, 2, 2, 2, 3, 3]; // Częstsze wyniki bramek
+                const goals1 = goalOptions[Math.floor(Math.random() * goalOptions.length)];
+                const goals2 = goalOptions[Math.floor(Math.random() * goalOptions.length)];
+
+                results[team1.name].goalsFor += goals1;
+                results[team1.name].goalsAgainst += goals2;
+                results[team2.name].goalsFor += goals2;
+                results[team2.name].goalsAgainst += goals1;
+
+                if (score1 > score2) {
+                    results[team1.name].points += 3;
+                    results[team1.name].wins += 1;
+                    results[team2.name].losses += 1;
+                    matches.push(`${team1.name} ${goals1} - ${goals2} ${team2.name}`);
+                } else if (score2 > score1) {
+                    results[team2.name].points += 3;
+                    results[team2.name].wins += 1;
+                    results[team1.name].losses += 1;
+                    matches.push(`${team2.name} ${goals2} - ${goals1} ${team1.name}`);
+                } else {
+                    results[team1.name].points += 1;
+                    results[team2.name].points += 1;
+                    results[team1.name].draws += 1;
+                    results[team2.name].draws += 1;
+                    matches.push(`${team1.name} ${goals1} - ${goals2} ${team2.name} (Remis)`);
+                }
+
+                results[team1.name].matches += 1;
+                results[team2.name].matches += 1;
+            }
+        }
+
+        // Konwersja obiektu wyników na tablicę i sortowanie
+        const sortedResults = Object.entries(results).sort((a, b) => b[1].points - a[1].points);
+
+        // Generowanie losowej liczby od -1 do 1 dla każdego zespołu i dodawanie jej do ID
+        teams.forEach(team => {
+            const adjustment = (Math.floor(Math.random() * 9) - 4) * 0.25;
+            team.id += adjustment;
+        });
+
+        // Wyświetlanie wyników
+        const resultsElement = document.getElementById('results');
+        resultsElement.innerHTML = '';
+        sortedResults.forEach(([team, stats], index) => {
+            const row = document.createElement('tr');
+            const lpCell = document.createElement('td');
+            const teamCell = document.createElement('td');
+            const pointsCell = document.createElement('td');
+            const winsCell = document.createElement('td');
+            const drawsCell = document.createElement('td');
+            const lossesCell = document.createElement('td');
+            const matchesCell = document.createElement('td');
+            const goalDiffCell = document.createElement('td');
+            const idCell = document.createElement('td');
+
+            lpCell.textContent = index + 1;
+            teamCell.textContent = team;
+            pointsCell.textContent = stats.points;
+            winsCell.textContent = stats.wins;
+            drawsCell.textContent = stats.draws;
+            lossesCell.textContent = stats.losses;
+            matchesCell.textContent = stats.matches;
+            goalDiffCell.textContent = stats.goalsFor - stats.goalsAgainst;
+            idCell.textContent = teams.find(t => t.name === team).id.toFixed(2);
+
+            row.appendChild(lpCell);
+            row.appendChild(teamCell);
+            row.appendChild(pointsCell);
+            row.appendChild(winsCell);
+            row.appendChild(drawsCell);
+            row.appendChild(lossesCell);
+            row.appendChild(matchesCell);
+            row.appendChild(goalDiffCell);
+            row.appendChild(idCell);
+            resultsElement.appendChild(row);
+
+            // Kolorowanie wierszy
+            if (index === 0) row.classList.add('winner');
+            if (index === 1) row.classList.add('second');
+            if (index === 2 || index === 3) row.classList.add('third');
+            if (index >= sortedResults.length - 2) row.classList.add('last');
+            if (index === sortedResults.length - 3) row.classList.add('second-last');
+            if (index >= sortedResults.length - 4 && index < sortedResults.length - 2) row.classList.add('next-three');
+            if (index >= sortedResults.length - 7 && index < sortedResults.length - 4) row.classList.add('next-four');
+            if (index === 14) row.classList.add('playoffs'); // Losowo wybrany zespół do baraży
+        });
+
+        // Zapis wyników meczów
+        matches.forEach(match => {
+            const matchElement = document.createElement('div');
+            matchElement.textContent = match;
+            matchResultsElement.appendChild(matchElement);
+        });
+    }
+
+    function clearResults() {
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('match-results').innerHTML = '';
+        document.getElementById('playoff-results').innerHTML = '';
+    }
+
+    function addTeam() {
+        const teamName = prompt('Wprowadź nazwę zespołu:');
+        const teamId = parseFloat(prompt('Wprowadź wartość id zespołu:'));
+        if (teamName && !isNaN(teamId)) {
+            teams.push({ name: teamName, id: teamId });
+            alert(`Dodano zespół: ${teamName} z id: ${teamId}`);
+        } else {
+            alert('Nieprawidłowe dane.');
+        }
+    }
+
+    function resetTeams() {
+        const teamCount = parseInt(prompt('Ile drużyn chcesz wprowadzić?'));
+        if (!isNaN(teamCount)) {
+            teams = [];
+            for (let i = 0; i < teamCount; i++) {
+                const teamName = prompt(`Wprowadź nazwę zespołu ${i + 1}:`);
+                const teamId = parseFloat(prompt(`Wprowadź wartość id zespołu ${i + 1}:`));
+                if (teamName && !isNaN(teamId)) {
+                    teams.push({ name: teamName, id: teamId });
+                } else {
+                    alert('Nieprawidłowe dane.');
+                    i--; // Cofnięcie iteracji w przypadku błędu
+                }
+            }
+        } else {
+            alert('Nieprawidłowa liczba.');
+        }
+    }
+
+    function showMatchResults() {
+        const matchResultsElement = document.getElementById('match-results');
+        matchResultsElement.style.display = matchResultsElement.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function showPlayoffs() {
+        const playoffsElement = document.getElementById('playoff-results');
+        playoffsElement.innerHTML = '<h2>Baraże:</h2>';
+        const sortedResults = Array.from(document.getElementById('results').children).map(row => row.cells[1].textContent);
+        const teamsInPlayoffs = sortedResults.slice(13, 16);
+        const randomTeam = teamsInPlayoffs[Math.floor(Math.random() * teamsInPlayoffs.length)];
+        const team15 = sortedResults[14];
+        const team14 = sortedResults[13];
+        const team13 = sortedResults[12];
+
+        const playoffsMatches = [
+            { match: `${randomTeam} vs ${team15}`, winner: null },
+            { match: `${team13} vs ${team14}`, winner: null }
+        ];
+        
+        // Pierwsza runda baraży
+        playoffsMatches.forEach(match => {
+            const matchElement = document.createElement('div');
+            matchElement.textContent = match.match;
+            playoffsElement.appendChild(matchElement);
+        });
+        
+        // Druga runda baraży (przegrani z pierwszej rundy)
+        playoffsMatches.forEach(match => {
+            if (match.winner === null) {
+                const secondRoundMatch = `${team15} vs ${team14}`;
+                const secondRoundElement = document.createElement('div');
+                secondRoundElement.textContent = secondRoundMatch;
+                playoffsElement.appendChild(secondRoundElement);
+            }
+        });
+
+        // Finał baraży (przegrani z drugiej rundy)
+        const finalMatch = `${team15} vs ${team14}`;
+        const finalElement = document.createElement('div');
+        finalElement.textContent = finalMatch;
+        playoffsElement.appendChild(finalElement);
+        
+        playoffsElement.style.display = playoffsElement.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function nextSeason() {
+        const sortedResults = Array.from(document.getElementById('results').children).map(row => row.cells[1].textContent);
+        const relegatedTeams = sortedResults.slice(-2).concat(sortedResults[14]);
+        relegatedTeams.forEach(team => {
+            teams = teams.filter(t => t.name !== team);
+        });
+        alert('Dwa ostatnie zespoły i zespół zaznaczony na fioletowo zostały usunięte. Dodaj trzy nowe zespoły.');
+        for (let i = 0; i < 3; i++) {
+            const teamName = prompt(`Wprowadź nazwę nowego zespołu ${i + 1}:`);
+            const teamId = parseFloat(prompt(`Wprowadź wartość id nowego zespołu ${i + 1}:`));
+            if (teamName && !isNaN(teamId)) {
+                teams.push({ name: teamName, id: teamId });
+            } else {
+                alert('Nieprawidłowe dane.');
+                i--; // Cofnięcie iteracji w przypadku błędu
+            }
+        }
+        clearResults();
+    }
+</script>
+
+</body>
+</html>

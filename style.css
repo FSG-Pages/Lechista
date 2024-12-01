@@ -43,12 +43,11 @@ body {
 
 .menu {
     display: flex;
-    flex-wrap: nowrap; /* Przyciski nie będą zawijane */
-    justify-content: space-around; /* Równomierne rozmieszczenie przycisków */
+    flex-wrap: wrap; /* Umożliwia zawijanie wierszy */
+    justify-content: center;
     background-color: #f8f8f8; /* Tło menu */
     padding: 10px;
     border-radius: 10px; /* Zaokrąglone rogi menu */
-    overflow-x: auto; /* Dodano przewijanie w poziomie dla mniejszych ekranów */
 }
 
 .menu-btn {
@@ -61,9 +60,12 @@ body {
     font-weight: 200;
     font-size: 18px;
     padding: 10px 20px;
-    margin: 0 5px; /* Odstęp między przyciskami */
+    margin: 5px; /* Odstęp między przyciskami */
     transition: background-color 0.3s, transform 0.3s; /* Efekty animacji */
-    white-space: nowrap; /* Zapobiega zawijaniu tekstu w przyciskach */
+    flex: 1 1 100px; /* Umożliwia skalowanie przycisków */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .menu-btn.active {
@@ -87,10 +89,12 @@ body {
 /* Media Queries */
 @media (max-width: 768px) {
     .menu {
-        overflow-x: auto; /* Przewijanie poziome dla mniejszych ekranów */
+        flex-direction: column; /* Przełącza na kolumnę dla mniejszych ekranów */
+        align-items: center;
     }
 
     .menu-btn {
-        flex: 0 0 auto; /* Utrzymuje przyciski w jednej linii */
+        width: 90%; /* Przycisk zajmuje większość szerokości ekranu */
+        margin-bottom: 10px; /* Odstęp między przyciskami w pionie */
     }
 }
